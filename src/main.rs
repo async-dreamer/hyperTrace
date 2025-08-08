@@ -20,13 +20,14 @@ struct Config {
 #[tokio::main]
 async fn main() {
     // Load config from YAML
-    let config_file = File::open("Config.yaml").expect("Failed to open config file");
+    let config_file = File::open("config.yaml").expect("Failed to open config file, please create your config and place it near hyperTrace binary file: https://github.com/async-dreamer/hyperTrace/blob/main/src/config.yaml");
     let config: Config = serde_yaml::from_reader(config_file).expect("Failed to parse config");
 
     let ip = config.ip;
     let port = config.port;
     let endpoint = config.endpoint.trim_start_matches('/').to_string();
-    
+    let endpoint_clone = endpoint.clone();
+
     // Create a WebSocket filter for the "hypertrace" path
     let ws_route = warp::path(endpoint)
         .and(warp::ws())
@@ -35,7 +36,7 @@ async fn main() {
         });
 
     // Start the server on port 3030
-    println!("Listening on ws://127.0.0.1:3030/hypertrace");
+    println!("Listening on ws://127.0.0.1:{}/{}", port, endpoint_clone);
     warp::serve(ws_route)
         .run((ip, port))
         .await;
